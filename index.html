@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>婚禮祝福牆</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f9f3e6;
+        }
+        #messages {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        .message {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .message:last-child {
+            border-bottom: none;
+        }
+        input, button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>婚禮祝福牆</h1>
+    <p>請掃描 QR Code 進入此頁面，留下您的祝福！</p>
+    <img src="qrcode.png" alt="掃描 QR Code 進入祝福牆">
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="寫下您的祝福...">
+    <button onclick="sendMessage()">送出</button>
+
+    <script>
+        function sendMessage() {
+            let input = document.getElementById("messageInput");
+            let message = input.value.trim();
+            if (message !== "") {
+                // 提交到 Google 表單
+                let formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScuuoT1T0gIHDiMM_0Q1qDMuABD5Or1T78APXOa6trGEKnhEA/formResponse";
+                let formData = new FormData();
+                formData.append("entry.954833106", message);
+                
+                fetch(formUrl, { method: "POST", body: formData, mode: "no-cors" })
+                    .then(() => {
+                        input.value = "";
+                        loadMessages(); // 重新載入留言
+                    });
+            }
+        }
+        
+        function loadMessages() {
+            let sheetUrl = "https://docs.google.com/spreadsheets/d/1cobVayok4d1CX_ksyn1Y-s32V_tKAjJdrGDQ3NIsxxA/gviz/tq?tqx=out:json";
+            fetch(sheetUrl)
+                .then(res => res.text())
+                .then(data => {
+                    let json = JSON.parse(data.substring(47, data.length - 2));
+                    let messagesDiv = document.getElementById("messages");
+                    messagesDiv.innerHTML = "";
+                    json.table.rows.forEach(row => {
+                        let newMessage = document.createElement("div");
+                        newMessage.classList.add("message");
+                        newMessage.textContent = row.c[0].v;
+                        messagesDiv.appendChild(newMessage);
+                    });
+                });
+        }
+        
+        loadMessages(); // 初始化載入留言
+    </script>
+</body>
+</html>
