@@ -77,6 +77,16 @@
     .nav-buttons button {
       margin: 0 10px;
     }
+
+    #loginButton {
+      margin-top: 20px;
+      background-color: #00b900;
+    }
+
+    #logoutButton {
+      margin-top: 20px;
+      background-color: #e74c3c;
+    }
   </style>
 </head>
 
@@ -89,6 +99,12 @@
       <button onclick="location.href='?mode=add'">新增祝福</button>
     </div>
 
+    <!-- 顯示登入按鈕 -->
+    <button id="loginButton">使用 LINE 登入</button>
+
+    <!-- 顯示登出按鈕 -->
+    <button id="logoutButton" style="display: none;">登出</button>
+
     <!-- 新增留言 -->
     <div class="message-box" id="addMessage" style="display: none;">
       <textarea id="messageInput" placeholder="在此輸入您的祝福..."></textarea>
@@ -98,6 +114,9 @@
     <!-- 顯示留言 -->
     <div class="messages-container" id="viewMessages" style="display: none;"></div>
   </div>
+
+  <!-- LINE SDK -->
+  <script src="https://static.line-scdn.net/liff/2.1/sdk.js"></script>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -124,6 +143,62 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    let userName = "匿名";
+    let userAvatar = "";
+
+    // 初始化 LIFF
+    window.onload = function () {
+      liff.init({ liffId: 'U441c689e151ad976d724fa589b8c1978' }, () => {
+        if (liff.isLoggedIn()) {
+          // 如果已經登入，顯示用戶資料並顯示「新增祝福」區域
+          getUserProfile();
+        } else {
+          // 顯示登入按鈕
+          document.getElementById("loginButton").style.display = "block";
+          document.getElementById("logoutButton").style.display = "none";
+        }
+      }, (err) => {
+        console.error('LIFF 初始化失敗:', err);
+      });
+    };
+
+    // 取得用戶資料
+    function getUserProfile() {
+      liff.getProfile().then(profile => {
+        userName = profile.displayName;
+        userAvatar = profile.pictureUrl;
+        document.getElementById("loginButton").style.display = "none";
+        document.getElementById("logoutButton").style.display = "block";
+        showAddMessage();
+      }).catch(err => {
+        console.error('獲取使用者資料失敗:', err);
+      });
+    }
+
+    // 登入
+    document.getElementById("loginButton").addEventListener("click", () => {
+      liff.login();
+    });
+
+    // 登出
+    document.getElementById("logoutButton").addEventListener("click", () => {
+      liff.logout();
+      window.location.reload();  // 登出後刷新頁面
+    });
+
+    // 顯示新增留言區域
+    function showAddMessage() {
+      document.getElementById("addMessage").style.display = "block";
+      document.getElementById("viewMessages").style.display = "none";
+    }
+
+    // 顯示查看留言區域
+    function showViewMessages() {
+      document.getElementById("addMessage").style.display = "none";
+      document.getElementById("viewMessages").style.display = "block";
+      loadMessages();
+    }
+
     // 判斷模式
     function checkMode() {
       const params = new URLSearchParams(window.location.search);
@@ -136,17 +211,6 @@
       }
     }
 
-    function showAddMessage() {
-      document.getElementById("addMessage").style.display = "block";
-      document.getElementById("viewMessages").style.display = "none";
-    }
-
-    function showViewMessages() {
-      document.getElementById("addMessage").style.display = "none";
-      document.getElementById("viewMessages").style.display = "block";
-      loadMessages();
-    }
-
     // 提交留言
     window.submitMessage = async function () {
       const text = document.getElementById("messageInput").value.trim();
@@ -155,7 +219,8 @@
           await addDoc(collection(db, "messages"), {
             text,
             timestamp: serverTimestamp(),
-            author: "匿名",
+            author: userName,
+            avatar: userAvatar,
           });
           alert("留言已提交！");
           document.getElementById("messageInput").value = "";
@@ -177,6 +242,7 @@
           el.className = "message";
           el.innerHTML = `
             <p><strong>${msg.author}</strong></p>
+            <img src="${msg.avatar}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
             <p>${msg.text}</p>
           `;
           container.appendChild(el);
