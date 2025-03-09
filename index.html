@@ -1,130 +1,192 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-TW">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>婚禮祝福牆</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
       margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 80%;
+      margin: 20px auto;
+      background-color: white;
       padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      cursor: pointer;
-      background-color: #5cb85c;
-      color: white;
-      border: none;
-      border-radius: 5px;
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
     }
-    #viewMessages, #addMessage {
-      display: none;
+
+    .message-box,
+    .messages-container {
+      margin-top: 20px;
     }
-    #messageInput {
+
+    textarea {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      height: 100px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .message {
+      background-color: #ecf0f1;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .message strong {
+      color: #2980b9;
+    }
+
+    .nav-buttons {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .nav-buttons button {
+      margin: 0 10px;
     }
   </style>
 </head>
+
 <body>
+  <div class="container">
+    <h1>婚禮祝福牆</h1>
 
-  <h1>婚禮祝福牆</h1>
+    <div class="nav-buttons">
+      <button onclick="location.href='?mode=view'">查看祝福</button>
+      <button onclick="location.href='?mode=add'">新增祝福</button>
+    </div>
 
-  <!-- 切換按鈕 -->
-  <button onclick="window.location.href = '/view';">查看留言</button>
-  <button onclick="window.location.href = '/add';">新增祝福</button>
+    <!-- 新增留言 -->
+    <div class="message-box" id="addMessage" style="display: none;">
+      <textarea id="messageInput" placeholder="在此輸入您的祝福..."></textarea>
+      <button onclick="submitMessage()">提交祝福</button>
+    </div>
 
-  <!-- 查看留言區 -->
-  <div id="viewMessages">
-    <h2>查看所有留言</h2>
-    <ul id="messageList"></ul>
+    <!-- 顯示留言 -->
+    <div class="messages-container" id="viewMessages" style="display: none;"></div>
   </div>
 
-  <!-- 新增留言區 -->
-  <div id="addMessage">
-    <h2>請輸入祝福語</h2>
-    <textarea id="messageInput" placeholder="請輸入你的祝福語..."></textarea>
-    <button onclick="addMessage()">送出祝福</button>
-  </div>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      query,
+      orderBy,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-  <script>
-    // Firebase 配置
     const firebaseConfig = {
       apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
-  authDomain: "wedding-blessing-wall.firebaseapp.com",
-  projectId: "wedding-blessing-wall",
-  storageBucket: "wedding-blessing-wall.firebasestorage.app",
-  messagingSenderId: "872163408660",
-  appId: "1:872163408660:web:18b9452fed79291a596001",
-  measurementId: "G-6M3MZ67EMF"
+      authDomain: "wedding-blessing-wall.firebaseapp.com",
+      projectId: "wedding-blessing-wall",
+      storageBucket: "wedding-blessing-wall.appspot.com",
+      messagingSenderId: "872163408660",
+      appId: "1:872163408660:web:18b9452fed79291a596001"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // 根據 URL 顯示對應介面
-    function checkPageStatus() {
-      const path = window.location.pathname;
-      if (path === '/view') {
-        showViewMessages();
-      } else if (path === '/add') {
+    // 判斷模式
+    function checkMode() {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get("mode");
+
+      if (mode === "add") {
         showAddMessage();
+      } else {
+        showViewMessages(); // 預設為查看
       }
     }
 
-    // 顯示查看留言區
+    function showAddMessage() {
+      document.getElementById("addMessage").style.display = "block";
+      document.getElementById("viewMessages").style.display = "none";
+    }
+
     function showViewMessages() {
-      document.getElementById('viewMessages').style.display = 'block';
-      document.getElementById('addMessage').style.display = 'none';
+      document.getElementById("addMessage").style.display = "none";
+      document.getElementById("viewMessages").style.display = "block";
       loadMessages();
     }
 
-    // 顯示新增祝福區
-    function showAddMessage() {
-      document.getElementById('viewMessages').style.display = 'none';
-      document.getElementById('addMessage').style.display = 'block';
-    }
+    // 提交留言
+    window.submitMessage = async function () {
+      const text = document.getElementById("messageInput").value.trim();
+      if (text) {
+        try {
+          await addDoc(collection(db, "messages"), {
+            text,
+            timestamp: serverTimestamp(),
+            author: "匿名",
+          });
+          alert("留言已提交！");
+          document.getElementById("messageInput").value = "";
+        } catch (e) {
+          console.error("提交留言失敗：", e);
+        }
+      }
+    };
 
-    // 讀取留言
+    // 載入留言
     function loadMessages() {
-      const messageList = document.getElementById('messageList');
-      messageList.innerHTML = ''; // 清空列表
-
-      db.collection("messages").get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          const li = document.createElement('li');
-          li.textContent = doc.data().message;
-          messageList.appendChild(li);
+      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
+      const container = document.getElementById("viewMessages");
+      onSnapshot(q, (snapshot) => {
+        container.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const msg = doc.data();
+          const el = document.createElement("div");
+          el.className = "message";
+          el.innerHTML = `
+            <p><strong>${msg.author}</strong></p>
+            <p>${msg.text}</p>
+          `;
+          container.appendChild(el);
         });
       });
     }
 
-    // 新增祝福留言
-    function addMessage() {
-      const messageInput = document.getElementById('messageInput').value;
-      if (messageInput.trim() !== '') {
-        db.collection("messages").add({
-          message: messageInput
-        }).then(() => {
-          alert("祝福已送出！");
-          document.getElementById('messageInput').value = ''; // 清空輸入框
-          window.location.href = '/view'; // 自動跳轉到查看留言頁面
-        }).catch((error) => {
-          alert("祝福送出失敗：" + error.message);
-        });
-      } else {
-        alert("祝福內容不能為空！");
-      }
-    }
-
-    // 頁面載入時檢查當前URL
-    window.onload = checkPageStatus;
+    // 初始化執行模式判斷
+    document.addEventListener("DOMContentLoaded", checkMode);
   </script>
 </body>
+
 </html>
