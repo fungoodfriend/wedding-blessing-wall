@@ -1,83 +1,168 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>婚禮祝福牆</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #f9f3e6;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
         }
-        #messages {
-            max-width: 600px;
+
+        .container {
+            width: 80%;
             margin: 20px auto;
-            padding: 10px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: left;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .message {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
         }
-        .message:last-child {
-            border-bottom: none;
+
+        .message-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        input, button {
-            margin-top: 10px;
+
+        .message-box input,
+        .message-box button {
             padding: 10px;
             font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        .message-box input {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .message-box button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .message-box button:hover {
+            background-color: #2980b9;
+        }
+
+        .messages-container {
+            margin-top: 20px;
+        }
+
+        .message {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message p {
+            margin: 0;
+        }
+
+        .message small {
+            color: #7f8c8d;
+        }
+
+        .message strong {
+            color: #2980b9;
         }
     </style>
 </head>
-<body>
-    <h1>婚禮祝福牆</h1>
-    <p>請掃描 QR Code 進入此頁面，留下您的祝福！</p>
-    <img src="qrcode.png" alt="掃描 QR Code 進入祝福牆">
-    <div id="messages"></div>
-    <input type="text" id="messageInput" placeholder="寫下您的祝福...">
-    <button onclick="sendMessage()">送出</button>
 
-    <script>
-        function sendMessage() {
-            let input = document.getElementById("messageInput");
-            let message = input.value.trim();
-            if (message !== "") {
-                // 提交到 Google 表單
-                let formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScuuoT1T0gIHDiMM_0Q1qDMuABD5Or1T78APXOa6trGEKnhEA/formResponse";
-                let formData = new FormData();
-                formData.append("entry.954833106", message);
-                
-                fetch(formUrl, { method: "POST", body: formData, mode: "no-cors" })
-                    .then(() => {
-                        input.value = "";
-                        loadMessages(); // 重新載入留言
-                    });
+<body>
+
+    <div class="container">
+        <h1>婚禮祝福牆</h1>
+
+        <!-- 提交留言區 -->
+        <div class="message-box">
+            <textarea id="messageInput" placeholder="在此輸入您的祝福..." required></textarea>
+            <button onclick="submitMessage()">提交祝福</button>
+        </div>
+
+        <!-- 顯示留言區 -->
+        <div class="messages-container" id="messagesContainer"></div>
+    </div>
+
+    <!-- Firebase 配置 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
+  authDomain: "wedding-blessing-wall.firebaseapp.com",
+  projectId: "wedding-blessing-wall",
+  storageBucket: "wedding-blessing-wall.firebasestorage.app",
+  messagingSenderId: "872163408660",
+  appId: "1:872163408660:web:18b9452fed79291a596001"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+         // 提交留言
+        window.submitMessage = function() {
+            const messageText = document.getElementById("messageInput").value;
+            if (messageText) {
+                addDoc(collection(db, "messages"), {
+                    text: messageText,
+                    timestamp: serverTimestamp(),
+                    author: "匿名",  // 若需要可以額外設置留言者名稱
+                    avatar: "https://example.com/default-avatar.jpg"  // 預設頭像
+                })
+                .then(() => {
+                    console.log("留言已成功提交");
+                    document.getElementById("messageInput").value = '';  // 清空輸入框
+                })
+                .catch((error) => {
+                    console.error("提交留言時出錯：", error);
+                });
             }
         }
-        
-        function loadMessages() {
-            let sheetUrl = "https://docs.google.com/spreadsheets/d/1cobVayok4d1CX_ksyn1Y-s32V_tKAjJdrGDQ3NIsxxA/gviz/tq?tqx=out:json";
-            fetch(sheetUrl)
-                .then(res => res.text())
-                .then(data => {
-                    let json = JSON.parse(data.substring(47, data.length - 2));
-                    let messagesDiv = document.getElementById("messages");
-                    messagesDiv.innerHTML = "";
-                    json.table.rows.forEach(row => {
-                        let newMessage = document.createElement("div");
-                        newMessage.classList.add("message");
-                        newMessage.textContent = row.c[0].v;
-                        messagesDiv.appendChild(newMessage);
-                    });
-                });
-        }
-        
-        loadMessages(); // 初始化載入留言
+
+        // 監聽留言變動並顯示
+        const messagesQuery = query(collection(db, "messages"), orderBy("timestamp", "desc"));
+        onSnapshot(messagesQuery, (snapshot) => {
+            const messagesContainer = document.getElementById("messagesContainer");
+            messagesContainer.innerHTML = ''; // 清空現有的留言
+            
+            snapshot.forEach(doc => {
+                const messageData = doc.data();
+                const messageElement = document.createElement("div");
+                messageElement.classList.add("message");
+                
+			 // 檢查 timestamp 是否存在且有效
+            const timestamp = messageData.timestamp && messageData.timestamp.seconds 
+                ? new Date(messageData.timestamp.seconds * 1000).toLocaleString()
+                : "無法取得時間";  // 若無效則顯示預設文字
+			
+                 // 顯示留言內容
+            messageElement.innerHTML = `
+                <p><strong>${messageData.author}</strong></p>
+                <p>${messageData.text}</p>
+            `;
+                messagesContainer.appendChild(messageElement);
+            });
+        });
     </script>
 </body>
+
 </html>
