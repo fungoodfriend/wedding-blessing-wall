@@ -1,258 +1,126 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>婚禮祝福牆</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f8f8;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>婚禮祝福牆</title>
+    <style>
+        /* 設置基本樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
 
-    .container {
-      width: 80%;
-      margin: 20px auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
 
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    .message-box,
-    .messages-container {
-      margin-top: 20px;
-    }
+        button:hover {
+            background-color: #45a049;
+        }
 
-    textarea {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      resize: vertical;
-      height: 100px;
-    }
+        .carousel {
+            display: flex;
+            overflow: hidden;
+            width: 80%;
+            margin: 20px auto;
+            justify-content: center;
+        }
 
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 10px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
-    .message {
-      background-color: #ecf0f1;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .message strong {
-      color: #2980b9;
-    }
-
-    .nav-buttons {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .nav-buttons button {
-      margin: 0 10px;
-    }
-
-    #loginButton {
-      margin-top: 20px;
-      background-color: #00b900;
-    }
-
-    #logoutButton {
-      margin-top: 20px;
-      background-color: #e74c3c;
-    }
-  </style>
+        .carousel img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.5s ease-in-out;
+            object-fit: cover;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="container">
+    <!-- 網頁標題 -->
     <h1>婚禮祝福牆</h1>
 
-    <div class="nav-buttons">
-      <button onclick="location.href='?mode=view'">查看祝福</button>
-      <button onclick="location.href='?mode=add'">新增祝福</button>
-    </div>
+    <!-- 登入按鈕 -->
+    <button id="authorize_button" style="display:none" onclick="handleAuthClick()">登錄</button>
+    <button id="signout_button" style="display:none" onclick="handleSignoutClick()">登出</button>
 
-    <!-- 顯示登入按鈕 -->
-    <button id="loginButton">使用 LINE 登入</button>
+    <!-- 顯示相簿照片的輪播區域 -->
+    <div class="carousel" id="photoCarousel"></div>
 
-    <!-- 顯示登出按鈕 -->
-    <button id="logoutButton" style="display: none;">登出</button>
-
-    <!-- 新增留言 -->
-    <div class="message-box" id="addMessage" style="display: none;">
-      <textarea id="messageInput" placeholder="在此輸入您的祝福..."></textarea>
-      <button onclick="submitMessage()">提交祝福</button>
-    </div>
-
-    <!-- 顯示留言 -->
-    <div class="messages-container" id="viewMessages" style="display: none;"></div>
-  </div>
-
-  <!-- LINE SDK -->
-  <script src="https://static.line-scdn.net/liff/2.1/sdk.js"></script>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp,
-      query,
-      orderBy,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
-      authDomain: "wedding-blessing-wall.firebaseapp.com",
-      projectId: "wedding-blessing-wall",
-      storageBucket: "wedding-blessing-wall.appspot.com",
-      messagingSenderId: "872163408660",
-      appId: "1:872163408660:web:18b9452fed79291a596001"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    let userName = "匿名";
-    let userAvatar = "";
-
-    // 初始化 LIFF
-    window.onload = function () {
-      liff.init({ liffId: 'U441c689e151ad976d724fa589b8c1978' }, () => {
-        if (liff.isLoggedIn()) {
-          // 如果已經登入，顯示用戶資料並顯示「新增祝福」區域
-          getUserProfile();
-        } else {
-          // 顯示登入按鈕
-          document.getElementById("loginButton").style.display = "block";
-          document.getElementById("logoutButton").style.display = "none";
-        }
-      }, (err) => {
-        console.error('LIFF 初始化失敗:', err);
-      });
-    };
-
-    // 取得用戶資料
-    function getUserProfile() {
-      liff.getProfile().then(profile => {
-        userName = profile.displayName;
-        userAvatar = profile.pictureUrl;
-        document.getElementById("loginButton").style.display = "none";
-        document.getElementById("logoutButton").style.display = "block";
-        showAddMessage();
-      }).catch(err => {
-        console.error('獲取使用者資料失敗:', err);
-      });
-    }
-
-    // 登入
-    document.getElementById("loginButton").addEventListener("click", () => {
-      liff.login();
-    });
-
-    // 登出
-    document.getElementById("logoutButton").addEventListener("click", () => {
-      liff.logout();
-      window.location.reload();  // 登出後刷新頁面
-    });
-
-    // 顯示新增留言區域
-    function showAddMessage() {
-      document.getElementById("addMessage").style.display = "block";
-      document.getElementById("viewMessages").style.display = "none";
-    }
-
-    // 顯示查看留言區域
-    function showViewMessages() {
-      document.getElementById("addMessage").style.display = "none";
-      document.getElementById("viewMessages").style.display = "block";
-      loadMessages();
-    }
-
-    // 判斷模式
-    function checkMode() {
-      const params = new URLSearchParams(window.location.search);
-      const mode = params.get("mode");
-
-      if (mode === "add") {
-        showAddMessage();
-      } else {
-        showViewMessages(); // 預設為查看
-      }
-    }
-
-    // 提交留言
-    window.submitMessage = async function () {
-      const text = document.getElementById("messageInput").value.trim();
-      if (text) {
-        try {
-          await addDoc(collection(db, "messages"), {
-            text,
-            timestamp: serverTimestamp(),
-            author: userName,
-            avatar: userAvatar,
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://apis.google.com/js/client.js"></script>
+    <script>
+        // OAuth 2.0 認證
+        function initClient() {
+          gapi.client.init({
+            apiKey: 'AIzaSyDvFD8o_OJhhmA18pK8kx1IC_GWkbXP-wE',  // 您的 API 金鑰
+            clientId: '1015379017254-e0v57sbhq6dna9bhltd11egldk5c2cmj.apps.googleusercontent.com',  // OAuth 2.0 客戶端 ID
+            discoveryDocs: ["https://photoslibrary.googleapis.com/$discovery/rest?version=v1"],
+            scope: "https://www.googleapis.com/auth/photoslibrary.readonly"  // 訪問 Google Photos 只讀權限
+          }).then(function () {
+            gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+            updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
           });
-          alert("留言已提交！");
-          document.getElementById("messageInput").value = "";
-        } catch (e) {
-          console.error("提交留言失敗：", e);
         }
-      }
-    };
 
-    // 載入留言
-    function loadMessages() {
-      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
-      const container = document.getElementById("viewMessages");
-      onSnapshot(q, (snapshot) => {
-        container.innerHTML = "";
-        snapshot.forEach((doc) => {
-          const msg = doc.data();
-          const el = document.createElement("div");
-          el.className = "message";
-          el.innerHTML = `
-            <p><strong>${msg.author}</strong></p>
-            <img src="${msg.avatar}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
-            <p>${msg.text}</p>
-          `;
-          container.appendChild(el);
-        });
-      });
-    }
+        // 啟動 Google API 客戶端
+        gapi.load('client:auth2', initClient);
 
-    // 初始化執行模式判斷
-    document.addEventListener("DOMContentLoaded", checkMode);
-  </script>
+        // 處理登錄和登出
+        function handleAuthClick() {
+          gapi.auth2.getAuthInstance().signIn();
+        }
+
+        function handleSignoutClick() {
+          gapi.auth2.getAuthInstance().signOut();
+        }
+
+        // 更新登錄狀態
+        function updateSigninStatus(isSignedIn) {
+          if (isSignedIn) {
+            document.getElementById('authorize_button').style.display = 'none';
+            document.getElementById('signout_button').style.display = 'block';
+            loadPhotos();  // 登錄後載入相簿照片
+          } else {
+            document.getElementById('authorize_button').style.display = 'block';
+            document.getElementById('signout_button').style.display = 'none';
+          }
+        }
+
+        // 載入並顯示相簿中的照片
+        function loadPhotos() {
+          gapi.client.photoslibrary.mediaItems.list({
+            pageSize: 10,  // 每次加載 10 張照片，您可以調整這個數字
+            fields: "nextPageToken,mediaItems(id,baseUrl)"  // 獲取照片的 ID 和基本 URL
+          }).then(function(response) {
+            const photos = response.result.mediaItems;
+            if (photos) {
+              const carousel = document.getElementById('photoCarousel');
+              carousel.innerHTML = '';  // 清空當前的照片內容
+              photos.forEach(function(photo) {
+                const img = document.createElement('img');
+                img.src = photo.baseUrl + "=w800-h600";  // 調整圖片大小
+                img.alt = "婚禮照片";
+                carousel.appendChild(img);
+              });
+            } else {
+              console.log("未找到照片。");
+            }
+          }).catch(function(error) {
+            console.log("加載照片時發生錯誤: " + error.message);
+          });
+        }
+    </script>
 </body>
-
 </html>
