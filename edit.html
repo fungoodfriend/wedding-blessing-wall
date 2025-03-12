@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>編輯祝福留言</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      background: linear-gradient(135deg, #ffe9ec, #fff6e7);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      color: #e74c3c;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      background-color: #fef1e6;
+      border: 1px solid #ffd6a5;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .message-text {
+      flex-grow: 1;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-left: 10px;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        width: 100%;
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>管理留言</h1>
+    <div id="messageList"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
+      authDomain: "wedding-blessing-wall.firebaseapp.com",
+      projectId: "wedding-blessing-wall",
+      storageBucket: "wedding-blessing-wall.appspot.com",
+      messagingSenderId: "872163408660",
+      appId: "1:872163408660:web:18b9452fed79291a596001"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function loadMessages() {
+      const container = document.getElementById("messageList");
+      db.collection("messages").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        container.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const msg = doc.data();
+          const el = document.createElement("div");
+          el.className = "message";
+          el.innerHTML = `
+            <div class="message-text">
+              <strong>${msg.author}</strong><br>${msg.text}
+            </div>
+            <button class="delete-btn" onclick="deleteMessage('${doc.id}')">刪除</button>
+          `;
+          container.appendChild(el);
+        });
+      });
+    }
+
+    function deleteMessage(id) {
+      if (confirm("確定要刪除這則留言嗎？")) {
+        db.collection("messages").doc(id).delete()
+          .then(() => alert("留言已刪除"))
+          .catch((err) => alert("刪除失敗: " + err));
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadMessages);
+  </script>
+</body>
+
+</html>

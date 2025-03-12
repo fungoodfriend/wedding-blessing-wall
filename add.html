@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新增祝福 - 婚禮祝福牆</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      background: linear-gradient(135deg, #ffe9ec, #fff6e7);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      padding-left: 5%;
+      padding-right: 5%;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      color: #e74c3c;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .nav-buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .message-box {
+      width: 100%;
+      text-align: center;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      height: 150px;
+    }
+
+    button.submit-btn {
+      background-color: #ff7f50;
+      padding: 12px 30px;
+      font-size: 18px;
+      border-radius: 50px;
+      width: auto;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s ease-in-out;
+    }
+
+    button.submit-btn:hover {
+      background-color: #e55c35;
+      transform: scale(1.05);
+    }
+
+    button.submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .predefined-message {
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .predefined-message select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* 響應式設計 */
+    @media (max-width: 768px) {
+      body {
+        padding-left: 5%;
+        padding-right: 5%;
+      }
+
+      .container {
+        width: 100%;
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      input[type="text"],
+      textarea {
+        font-size: 18px;
+        padding: 14px;
+      }
+
+      button.submit-btn {
+        padding: 14px 32px;
+        font-size: 20px;
+      }
+
+      .predefined-message select {
+        font-size: 18px;
+        padding: 14px;
+      }
+
+      .char-count {
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      input[type="text"],
+      textarea {
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      button.submit-btn {
+        padding: 12px 24px;
+        font-size: 18px;
+      }
+
+      .predefined-message select {
+        font-size: 16px;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>婚禮祝福牆</h1>
+    <div class="message-box">
+      <div style="text-align: center; margin-bottom: 10px;">
+        <div id="userName" style="margin-top:5px;color:#666;"></div>
+      </div>
+      <input type="text" id="authorInput" placeholder="您的名字..." required>
+      <textarea id="messageInput" placeholder="在此輸入您的祝福..." required maxlength="50"></textarea>
+      <div class="char-count">
+        <span id="charCount">0</span> / 50 字
+      </div>
+      <div class="predefined-message">
+        <label for="predefinedMessage">選擇公版留言：</label>
+        <select id="predefinedMessage" onchange="fillMessage()">
+          <option value="">選擇留言</option>
+          <option value="願你們永遠相愛，幸福美滿！">願你們永遠相愛，幸福美滿！</option>
+		  <option value="祝福新人永結同心，白頭偕老！">祝福新人永結同心，白頭偕老！</option>
+<option value="祝你們的婚姻充滿愛與喜悅！">祝你們的婚姻充滿愛與喜悅！</option>
+<option value="願你們攜手共度每一個甜蜜的時光！">願你們攜手共度每一個甜蜜的時光！</option>
+<option value="祝你們婚姻生活充滿笑聲和快樂！">祝你們婚姻生活充滿笑聲和快樂！</option>
+<option value="祝你們一起笑對生活，永遠快樂！">祝你們一起笑對生活，永遠快樂！</option>
+<option value="祝你們的生活每天都像今天這麼喜慶！">祝你們的生活每天都像今天這麼喜慶！</option>
+<option value="幸福就是每天都能一起笑，祝你們幸福！">幸福就是每天都能一起笑，祝你們幸福！</option>
+<option value="祝你們的婚姻生活充滿笑聲和幸福！">祝你們的婚姻生活充滿笑聲和幸福！</option>
+<option value="祝你們的愛情故事永遠幽默動人！">祝你們的愛情故事永遠幽默動人！</option>
+<option value="新婚快樂！記得每天都要微笑和擁抱！">新婚快樂！記得每天都要微笑和擁抱！</option>
+<option value="希望你們的婚姻生活像電影一樣充滿驚喜！">希望你們的婚姻生活像電影一樣充滿驚喜！</option>
+<option value="願你們的愛情像詩一般美麗！">願你們的愛情像詩一般美麗！</option>
+<option value="祝你們愛情長久，甜蜜一生！">祝你們愛情長久，甜蜜一生！</option>
+<option value="願你們的婚姻生活充滿浪漫和幸福！">願你們的婚姻生活充滿浪漫和幸福！</option>
+<option value="愛情如花，願你們的愛情永遠盛開！">愛情如花，願你們的愛情永遠盛開！</option>
+<option value="祝你們永遠像今天這樣幸福快樂！">祝你們永遠像今天這樣幸福快樂！</option>
+<option value="願你們的愛情如星空般燦爛，永遠閃耀！">願你們的愛情如星空般燦爛，永遠閃耀！</option>
+<option value="祝你們的愛情像陽光般溫暖，四季常青！">祝你們的愛情像陽光般溫暖，四季常青！</option>
+<option value="願你們的婚姻生活像童話般美好！">願你們的婚姻生活像童話般美好！</option>
+<option value="祝你們的愛情故事永遠浪漫動人！">祝你們的愛情故事永遠浪漫動人！</option>
+<option value="祝你們永浴愛河，幸福美滿！">祝你們永浴愛河，幸福美滿！</option>
+<option value="願你們的愛情如葡萄酒，越陳越香！">願你們的愛情如葡萄酒，越陳越香！</option>
+<option value="祝你們的生活甜如蜜，愛情永不變！">祝你們的生活甜如蜜，愛情永不變！</option>
+<option value="願你們的每一天都充滿歡笑與幸福！">願你們的每一天都充滿歡笑與幸福！</option>
+<option value="祝你們在婚姻的路上攜手同行，愛情永恆！">祝你們在婚姻的路上攜手同行，愛情永恆！</option>
+<option value="祝福你們的愛情像夏日的陽光般燦爛！">祝福你們的愛情像夏日的陽光般燦爛！</option>
+
+        </select>
+      </div>
+      <button class="submit-btn" onclick="submitMessage()">送出祝福</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
+      authDomain: "wedding-blessing-wall.firebaseapp.com",
+      projectId: "wedding-blessing-wall",
+      storageBucket: "wedding-blessing-wall.appspot.com",
+      messagingSenderId: "872163408660",
+      appId: "1:872163408660:web:18b9452fed79291a596001"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function fillMessage() {
+      const predefinedMessage = document.getElementById("predefinedMessage").value;
+      document.getElementById("messageInput").value = predefinedMessage;
+      updateCharCount();
+    }
+
+    function updateCharCount() {
+      const message = document.getElementById("messageInput").value;
+      document.getElementById("charCount").textContent = message.length;
+    }
+
+    document.getElementById("messageInput").addEventListener("input", updateCharCount);
+
+    async function submitMessage() {
+      const author = document.getElementById("authorInput").value.trim() || "匿名";
+      const text = document.getElementById("messageInput").value.trim();
+      if (!author || !text) return alert("請填寫名字和祝福內容");
+      try {
+        await db.collection("messages").add({
+          text,
+          author,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById("messageInput").value = "";
+        document.getElementById("charCount").textContent = "0";
+        alert("留言已送出！");
+      } catch (e) {
+        console.error("提交失敗：", e);
+      }
+    }
+  </script>
+</body>
+
+</html>
