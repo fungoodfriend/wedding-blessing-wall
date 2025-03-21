@@ -2,160 +2,279 @@
 <html lang="zh-TW">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>婚禮祝福牆</title>
-  <style>
-    body {
-      font-family: "Noto Sans TC", sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #cceeff; /* 淺藍天空色 */
-      overflow: hidden;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>婚禮祝福牆</title>
+    <style>
+        body {
+            font-family: "Noto Sans TC", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #cceeff;
+            overflow: hidden;
+            position: relative;
+        }
 
-    .container {
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-    }
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
 
-    .carousel {
-      flex: 3;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
+        .carousel {
+            flex: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
 
-    .carousel img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
+        .carousel img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
 
-    .marquee {
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      background-color: rgba(0, 0, 0, 0.1);
-      padding: 10px;
-      height: 100%;
-    }
+        .message-container {
+            position: absolute;
+            bottom: 0;
+            width: 80%;
+            height: 25vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 0 auto;
+        }
 
-    .marquee-content {
-      display: flex;
-      flex-direction: column;
-      animation: marqueeVertical 60s linear infinite;
-    }
+        .message-left,
+        .message-right {
+            width: 35%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
 
-    .message {
-      margin: 10px auto;
-      padding: 10px 20px;
-      font-size: 1.5rem;
-      color: #fff;
-      background-color: rgba(0, 0, 0, 0.4);
-      border-radius: 10px;
-      width: 90%;
-      box-sizing: border-box;
-    }
+        .message-left {
+            background: linear-gradient(to right, rgba(204, 238, 255, 0.8), rgba(204, 238, 255, 0));
+        }
 
-    @keyframes marqueeVertical {
-      0% {
-        transform: translateY(100%);
-      }
+        .message-right {
+            background: linear-gradient(to left, rgba(204, 238, 255, 0.8), rgba(204, 238, 255, 0));
+        }
 
-      100% {
-        transform: translateY(-100%);
-      }
-    }
-  </style>
+        .marquee-content {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: scrollUp 30s linear infinite;
+        }
+
+        .message {
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 1.5rem;
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            box-sizing: border-box;
+            width: 100%;
+            text-align: left;
+        }
+
+        .fade-out {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to top, rgba(204, 238, 255, 0), rgba(204, 238, 255, 1));
+        }
+
+        @keyframes scrollUp {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-50%);
+            }
+        }
+
+        /* 新增全螢幕按鈕樣式 */
+        #fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.7);
+            color: #333;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        #fullscreen-btn:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        #fullscreen-btn.active {
+              background-color: rgba(255, 255, 255, 0.9);
+            
+        }
+
+        /* 全螢幕圖示樣式 */
+        #fullscreen-btn::before {
+            content: "";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-size: cover;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        #fullscreen-btn::before {
+            background-image: url("icon/screen.png");
+        }
+
+        #fullscreen-btn.active::before {
+            background-image: url("icon/minimize.png");
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="carousel">
-      <img id="carouselImage" src="" alt="Wedding Photo">
-    </div>
-    <div class="marquee" id="messages">
-      <div class="marquee-content" id="marqueeContent">
-        <div class="message"><strong>感謝您的祝福！</strong><br>願新人幸福美滿，百年好合！</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
+    <div class="container">
+        <div class="carousel">
+            <img id="carouselImage" src="" alt="Wedding Photo">
+            <div class="message-container">
+                <div class="message-left" id="messagesLeft">
+                    <div class="marquee-content" id="marqueeContentLeft">
+                        <div class="message"><strong>感謝您的祝福！</strong><br>願新人幸福美滿，百年好合！</div>
+                    </div>
+                    <div class="fade-out"></div>
+                </div>
+                <div class="message-right" id="messagesRight">
+                    <div class="marquee-content" id="marqueeContentRight">
+                        <div class="message"><strong>感謝您的祝福！</strong><br>願新人幸福美滿，百年好合！</div>
+                    </div>
+                    <div class="fade-out"></div>
+                </div>
+            </div>
+        </div>
+        <button id="fullscreen-btn"></button> </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+        // 您的 Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
       authDomain: "wedding-blessing-wall.firebaseapp.com",
       projectId: "wedding-blessing-wall",
       storageBucket: "wedding-blessing-wall.appspot.com",
       messagingSenderId: "872163408660",
       appId: "1:872163408660:web:18b9452fed79291a596001"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+        };
 
-    function loadMessages() {
-      const container = document.getElementById("marqueeContent");
-      db.collection("messages").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
-        container.innerHTML = ""; // 清空之前的留言
-        let fragment = document.createDocumentFragment();
-        snapshot.forEach((doc) => {
-          const msg = doc.data();
-          const el = document.createElement("div");
-          el.className = "message";
-          el.innerHTML = `<strong>${msg.author}</strong><br>${msg.text}`;
-          fragment.appendChild(el);
-        });
-        container.appendChild(fragment.cloneNode(true));
-        container.appendChild(fragment);
-      });
-    }
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-    // ✅ 自動載入 images 資料夾的圖片
-    const maxImages = 20; // 預設最多檢查 20 張圖片，可依需求調整
-    const imagePrefix = 'images/photo';
-    const imageExt = '.jpg';
-    const imageUrls = [];
-    let currentIndex = 0;
+        // 載入留言
+        function loadMessages() {
+            const containerLeft = document.getElementById("marqueeContentLeft");
+            const containerRight = document.getElementById("marqueeContentRight");
 
-    function testImageLoad(url, onSuccess) {
-      const img = new Image();
-      img.onload = () => onSuccess(url);
-      img.onerror = () => { };
-      img.src = url;
-    }
+            db.collection("messages").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+                const allMessages = [];
+                snapshot.forEach((doc) => {
+                    const msg = doc.data();
+                    const el = document.createElement("div");
+                    el.className = "message";
+                    el.innerHTML = `<strong>${msg.author}</strong><br>${msg.text}`; // 確保姓名在上方
+                    allMessages.push(el.outerHTML);
+                });
 
-    // 自動檢查 images/photo1.jpg ~ photo20.jpg
-    for (let i = 1; i <= maxImages; i++) {
-      const url = `${imagePrefix}${i}${imageExt}`;
-      testImageLoad(url, (validUrl) => {
-        imageUrls.push(validUrl);
-        if (imageUrls.length === 1) {
-          document.getElementById("carouselImage").src = validUrl;
+                const middle = Math.ceil(allMessages.length / 2);
+                const leftMessages = allMessages.slice(0, middle);
+                const rightMessages = allMessages.slice(middle);
+
+                containerLeft.innerHTML = leftMessages.concat(leftMessages).join('');
+                containerRight.innerHTML = rightMessages.concat(rightMessages).join('');
+
+                // 根據留言數量調整滾動速度
+                const duration = Math.max(30, allMessages.length * 5);
+                containerLeft.style.animation = `scrollUp ${duration}s linear infinite`;
+                containerRight.style.animation = `scrollUp ${duration}s linear infinite`;
+            });
         }
-      });
-    }
 
-    function updateCarousel() {
-      if (imageUrls.length === 0) return;
-      currentIndex = (currentIndex + 1) % imageUrls.length;
-      document.getElementById("carouselImage").src = imageUrls[currentIndex];
-    }
+        // 圖片輪播
+        const maxImages = 2; // 最大圖片數量
+        const imagePrefix = 'images/photo'; // 圖片路徑前綴
+        const imageExt = '.jpg'; // 圖片副檔名
+        const imageUrls = []; // 儲存圖片 URL 的陣列
+        let currentIndex = 0; // 目前顯示的圖片索引
 
-    setInterval(updateCarousel, 5000);
+        // 測試圖片是否載入成功
+        function testImageLoad(url, onSuccess) {
+            const img = new Image();
+            img.onload = () => onSuccess(url); // 載入成功時執行 onSuccess
+            img.onerror = () => { }; // 載入失敗時不執行任何操作
+            img.src = url; // 設定圖片來源
+        }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      loadMessages();
-      updateCarousel();
-    });
-  </script>
+        // 預先載入圖片
+        for (let i = 1; i <= maxImages; i++) {
+            const url = `${imagePrefix}${i}${imageExt}`; // 組合圖片 URL
+            testImageLoad(url, (validUrl) => {
+                imageUrls.push(validUrl); // 將載入成功的圖片 URL 加入陣列
+                if (imageUrls.length === 1) {
+                    document.getElementById("carouselImage").src = validUrl; // 如果是第一張載入的圖片，則顯示
+                }
+            });
+        }
+
+        // 更新輪播圖片
+        function updateCarousel() {
+            if (imageUrls.length === 0) return; // 如果沒有圖片，則不執行
+            currentIndex = (currentIndex + 1) % imageUrls.length; // 更新圖片索引
+            document.getElementById("carouselImage").src = imageUrls[currentIndex]; // 設定圖片來源
+        }
+
+        // 每 5 秒更新一次輪播圖片
+        setInterval(updateCarousel, 5000);
+
+        // 頁面載入完成後執行
+        document.addEventListener("DOMContentLoaded", () => {
+            loadMessages(); // 載入留言
+            updateCarousel(); // 開始輪播圖片
+
+            // 全螢幕按鈕事件
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            fullscreenBtn.addEventListener('click', () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                    fullscreenBtn.classList.remove('active');
+                } else {
+                    document.documentElement.requestFullscreen();
+                    fullscreenBtn.classList.add('active');
+                }
+            });
+
+            // 監聽全螢幕狀態改變事件
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    fullscreenBtn.classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
