@@ -42,7 +42,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative; /* Add relative positioning for edit area */
+            position: relative;
+            /* Add relative positioning for edit area */
+            transition: background-color 0.2s ease;
+            /* Smooth transition for hover effect */
+        }
+
+        .message:hover {
+            background-color: #fde5d0;
+            /* Slight background change on hover */
         }
 
         .message-text {
@@ -62,6 +70,13 @@
 
         .edit-btn:hover {
             background-color: #2980b9;
+            transform: scale(1.05);
+            /* Slight scale on hover */
+        }
+
+        .edit-btn:active {
+            transform: scale(0.95);
+            /* Slight scale down on click */
         }
 
         .delete-btn {
@@ -77,21 +92,46 @@
 
         .delete-btn:hover {
             background-color: #c0392b;
+            transform: scale(1.05);
+            /* Slight scale on hover */
+        }
+
+        .delete-btn:active {
+            transform: scale(0.95);
+            /* Slight scale down on click */
         }
 
         .edit-area {
             display: none;
             width: 100%;
             margin-top: 10px;
-            position: absolute; /* Use absolute positioning */
+            position: absolute;
+            /* Use absolute positioning */
             left: 0;
-            top: 100%; /* Position below the message */
-            background-color: #f8f8f8; /* Light background for edit area */
+            top: 100%;
+            /* Position below the message */
+            background-color: #f8f8f8;
+            /* Light background for edit area */
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #ddd;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 10; /* Ensure edit area is above other elements */
+            z-index: 10;
+            /* Ensure edit area is above other elements */
+            animation: slideIn 0.3s ease-in-out;
+            /* Add slide-in animation */
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .edit-area textarea {
@@ -106,8 +146,19 @@
             /* Start with automatic height */
             min-height: 100px;
             /* Set a minimum height */
-            font-family: "Noto Sans TC", sans-serif; /* Consistent font */
+            font-family: "Noto Sans TC", sans-serif;
+            /* Consistent font */
             font-size: 16px;
+            transition: border-color 0.2s ease;
+            /* Smooth transition for focus effect */
+        }
+
+        .edit-area textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            /* Highlight border on focus */
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+            /* Add a subtle shadow on focus */
         }
 
         .edit-area .save-btn {
@@ -123,6 +174,13 @@
 
         .edit-area .save-btn:hover {
             background-color: #27ae60;
+            transform: scale(1.05);
+            /* Slight scale on hover */
+        }
+
+        .edit-area .save-btn:active {
+            transform: scale(0.95);
+            /* Slight scale down on click */
         }
 
         .cancel-btn {
@@ -139,6 +197,13 @@
 
         .cancel-btn:hover {
             background-color: #95a5a6;
+            transform: scale(1.05);
+            /* Slight scale on hover */
+        }
+
+        .cancel-btn:active {
+            transform: scale(0.95);
+            /* Slight scale down on click */
         }
 
         @media (max-width: 768px) {
@@ -230,7 +295,10 @@
         function deleteMessage(id) {
             if (confirm("確定要刪除這則留言嗎？")) {
                 db.collection("messages").doc(id).delete()
-                    .then(() => alert("留言已刪除"))
+                    .then(() => {
+                        alert("留言已刪除");
+                        loadMessages(); // Refresh message list after deletion
+                    })
                     .catch((err) => alert("刪除失敗: " + err));
             }
         }
@@ -249,6 +317,7 @@
             textarea.value = authorElement.textContent + ": " + messageElement.textContent;
             editArea.style.display = "block";
             // Adjust position of edit area, 20px for button height and 10px for margin.
+            textarea.focus(); // Focus on textarea when edit area is shown
         }
 
         function saveMessage(id) {
