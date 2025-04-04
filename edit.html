@@ -155,23 +155,12 @@
         let currentUser = null;
 
         function updateUI(user) {
-            if (user) {
-                console.log("User logged in: " + user.email);  // 檢查使用者的 email
-                if (adminEmails.includes(user.email)) {
-                    console.log("Admin access granted.");
-                    document.getElementById("login-btn").style.display = "none";
-                    document.getElementById("logout-btn").style.display = "block";
-                    currentUser = user;
-                    loadMessages(true); // 允許管理員管理留言
-                } else {
-                    console.log("Not admin.");
-                    document.getElementById("login-btn").style.display = "block";
-                    document.getElementById("logout-btn").style.display = "none";
-                    currentUser = null;
-                    loadMessages(false); // 一般使用者只能瀏覽
-                }
+            if (user && adminEmails.includes(user.email)) {
+                document.getElementById("login-btn").style.display = "none";
+                document.getElementById("logout-btn").style.display = "block";
+                currentUser = user;
+                loadMessages(true); // 允許管理員管理留言
             } else {
-                console.log("No user logged in.");
                 document.getElementById("login-btn").style.display = "block";
                 document.getElementById("logout-btn").style.display = "none";
                 currentUser = null;
@@ -181,7 +170,8 @@
 
         document.getElementById("login-btn").addEventListener("click", () => {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch((error) => alert("登入失敗：" + error.message));
+            // 改為使用 redirect 流程
+            auth.signInWithRedirect(provider);
         });
 
         document.getElementById("logout-btn").addEventListener("click", () => {
@@ -189,11 +179,19 @@
         });
 
         auth.onAuthStateChanged((user) => {
-            updateUI(user);
+            if (user) {
+                updateUI(user);
+            } else {
+                // 用 redirect 流程後，登入後會回來此頁
+                auth.getRedirectResult().then(result => {
+                    if (result.user) {
+                        updateUI(result.user);
+                    }
+                });
+            }
         });
 
         function loadMessages(isAdmin) {
-            console.log("Loading messages. Admin: " + isAdmin);
             const container = document.getElementById("messageList");
             db.collection("messages").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
                 container.innerHTML = "";
