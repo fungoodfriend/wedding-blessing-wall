@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>編輯祝福留言</title>
+    <title>管理留言</title>
     <style>
         body {
             font-family: "Noto Sans TC", sans-serif;
@@ -32,6 +32,38 @@
             margin-bottom: 20px;
         }
 
+        #login-btn, #logout-btn {
+            display: block;
+            width: 200px;
+            margin: 0 auto 20px;
+            padding: 10px;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        #login-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #login-btn:hover {
+            background-color: #2980b9;
+        }
+
+        #logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            display: none;
+        }
+
+        #logout-btn:hover {
+            background-color: #c0392b;
+        }
+
         .message {
             background-color: #fef1e6;
             border: 1px solid #ffd6a5;
@@ -43,62 +75,37 @@
             justify-content: space-between;
             align-items: center;
             position: relative;
-            /* Add relative positioning for edit area */
-            transition: background-color 0.2s ease;
-            /* Smooth transition for hover effect */
-        }
-
-        .message:hover {
-            background-color: #fde5d0;
-            /* Slight background change on hover */
         }
 
         .message-text {
             flex-grow: 1;
         }
 
-        .edit-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
+        .edit-btn, .delete-btn {
+            display: none; /* 預設隱藏，管理員登入後顯示 */
             padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.3s;
             margin-left: 10px;
+            color: white;
+            border: none;
+        }
+
+        .edit-btn {
+            background-color: #3498db;
         }
 
         .edit-btn:hover {
             background-color: #2980b9;
-            transform: scale(1.05);
-            /* Slight scale on hover */
-        }
-
-        .edit-btn:active {
-            transform: scale(0.95);
-            /* Slight scale down on click */
         }
 
         .delete-btn {
             background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-left: 10px;
         }
 
         .delete-btn:hover {
             background-color: #c0392b;
-            transform: scale(1.05);
-            /* Slight scale on hover */
-        }
-
-        .delete-btn:active {
-            transform: scale(0.95);
-            /* Slight scale down on click */
         }
 
         .edit-area {
@@ -106,141 +113,14 @@
             width: 100%;
             margin-top: 10px;
             position: absolute;
-            /* Use absolute positioning */
             left: 0;
             top: 100%;
-            /* Position below the message */
             background-color: #f8f8f8;
-            /* Light background for edit area */
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #ddd;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             z-index: 10;
-            /* Ensure edit area is above other elements */
-            animation: slideIn 0.3s ease-in-out;
-            /* Add slide-in animation */
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .edit-area textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            resize: none;
-            /* Prevent textarea from being resized by the user */
-            height: auto;
-            /* Start with automatic height */
-            min-height: 100px;
-            /* Set a minimum height */
-            font-family: "Noto Sans TC", sans-serif;
-            /* Consistent font */
-            font-size: 16px;
-            transition: border-color 0.2s ease;
-            /* Smooth transition for focus effect */
-        }
-
-        .edit-area textarea:focus {
-            outline: none;
-            border-color: #3498db;
-            /* Highlight border on focus */
-            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-            /* Add a subtle shadow on focus */
-        }
-
-        .edit-area .save-btn {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-
-        .edit-area .save-btn:hover {
-            background-color: #27ae60;
-            transform: scale(1.05);
-            /* Slight scale on hover */
-        }
-
-        .edit-area .save-btn:active {
-            transform: scale(0.95);
-            /* Slight scale down on click */
-        }
-
-        .cancel-btn {
-            background-color: #bdc3c7;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-            margin-left: 10px;
-        }
-
-        .cancel-btn:hover {
-            background-color: #95a5a6;
-            transform: scale(1.05);
-            /* Slight scale on hover */
-        }
-
-        .cancel-btn:active {
-            transform: scale(0.95);
-            /* Slight scale down on click */
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                width: 100%;
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .message {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .edit-btn,
-            .delete-btn {
-                margin-left: 0;
-                margin-top: 5px;
-            }
-
-            .edit-area {
-                /* Adjust positioning for smaller screens if needed */
-                top: 110%;
-            }
-        }
-
-        /* Add some spacing between buttons in message */
-        .message button {
-            margin-right: 5px;
-            margin-left: 0;
-        }
-
-        .message button:last-child {
-            margin-right: 0;
         }
     </style>
 </head>
@@ -248,24 +128,60 @@
 <body>
     <div class="container">
         <h1>管理留言</h1>
+        <button id="login-btn">Google 登入</button>
+        <button id="logout-btn">登出</button>
         <div id="messageList"></div>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
-      authDomain: "wedding-blessing-wall.firebaseapp.com",
-      projectId: "wedding-blessing-wall",
-      storageBucket: "wedding-blessing-wall.appspot.com",
-      messagingSenderId: "872163408660",
-      appId: "1:872163408660:web:18b9452fed79291a596001"
+            authDomain: "wedding-blessing-wall.firebaseapp.com",
+            projectId: "wedding-blessing-wall",
+            storageBucket: "wedding-blessing-wall.appspot.com",
+            messagingSenderId: "872163408660",
+            appId: "1:872163408660:web:18b9452fed79291a596001"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        function loadMessages() {
+        const adminEmails = ["fungoodfriend@gmail.com"]; // **設定管理者 Email 白名單**
+        let currentUser = null;
+
+        function updateUI(user) {
+            if (user && adminEmails.includes(user.email)) {
+                document.getElementById("login-btn").style.display = "none";
+                document.getElementById("logout-btn").style.display = "block";
+                currentUser = user;
+                loadMessages(true); // 允許管理員管理留言
+            } else {
+                document.getElementById("login-btn").style.display = "block";
+                document.getElementById("logout-btn").style.display = "none";
+                currentUser = null;
+                loadMessages(false); // 一般使用者只能瀏覽
+            }
+        }
+
+        document.getElementById("login-btn").addEventListener("click", () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch((error) => alert("登入失敗：" + error.message));
+        });
+
+        document.getElementById("logout-btn").addEventListener("click", () => {
+            auth.signOut().then(() => updateUI(null));
+        });
+
+        auth.onAuthStateChanged((user) => {
+            updateUI(user);
+        });
+
+        function loadMessages(isAdmin) {
             const container = document.getElementById("messageList");
             db.collection("messages").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
                 container.innerHTML = "";
@@ -275,17 +191,10 @@
                     el.className = "message";
                     el.innerHTML = `
                         <div class="message-text">
-                            <strong data-author="${msg.author}">${msg.author}</strong>:<br><span data-text="${msg.text}">${msg.text}</span>
+                            <strong>${msg.author}</strong>:<br><span>${msg.text}</span>
                         </div>
-                        <button class="edit-btn" data-message-id="${doc.id}" onclick="editMessage('${doc.id}')">編輯</button>
-                        <button class="delete-btn" onclick="deleteMessage('${doc.id}')">刪除</button>
-                        <div class="edit-area" id="edit-area-${doc.id}">
-                            <textarea></textarea>
-                            <div style="display:flex; gap:10px; justify-content: flex-end;">
-                            <button class="save-btn" onclick="saveMessage('${doc.id}')">儲存</button>
-                            <button class="cancel-btn" onclick="cancelEdit('${doc.id}')">取消</button>
-                            </div>
-                        </div>
+                        ${isAdmin ? `<button class="edit-btn" onclick="editMessage('${doc.id}')">編輯</button>
+                        <button class="delete-btn" onclick="deleteMessage('${doc.id}')">刪除</button>` : ""}
                     `;
                     container.appendChild(el);
                 });
@@ -294,62 +203,20 @@
 
         function deleteMessage(id) {
             if (confirm("確定要刪除這則留言嗎？")) {
-                db.collection("messages").doc(id).delete()
-                    .then(() => {
-                        alert("留言已刪除");
-                        loadMessages(); // Refresh message list after deletion
-                    })
-                    .catch((err) => alert("刪除失敗: " + err));
+                db.collection("messages").doc(id).delete().then(() => {
+                    alert("留言已刪除");
+                }).catch((err) => alert("刪除失敗: " + err));
             }
         }
 
         function editMessage(id) {
-            const messageElement = document.querySelector(`[data-text="${CSS.escape(
-                document.querySelector(`[data-message-id="${id}"]`).previousElementSibling.querySelector('[data-text]').textContent
-            )}"]`);
-            const authorElement = document.querySelector(`[data-author="${CSS.escape(
-                document.querySelector(`[data-message-id="${id}"]`).previousElementSibling.querySelector('[data-author]').textContent
-            )}"]`);
-            const editArea = document.getElementById("edit-area-" + id);
-            const textarea = editArea.querySelector("textarea");
-
-            // Store the original content in the textarea
-            textarea.value = authorElement.textContent + ": " + messageElement.textContent;
-            editArea.style.display = "block";
-            // Adjust position of edit area, 20px for button height and 10px for margin.
-            textarea.focus(); // Focus on textarea when edit area is shown
-        }
-
-        function saveMessage(id) {
-            const editArea = document.getElementById("edit-area-" + id);
-            const textarea = editArea.querySelector("textarea");
-            const [author, text] = textarea.value.split(":");
-            const trimmedAuthor = author ? author.trim() : "";
-            const trimmedText = text ? text.trim() : "";
-
-            if (!trimmedText) {
-                alert("請輸入留言內容！");
-                return;
+            const newText = prompt("請輸入新的留言內容：");
+            if (newText) {
+                db.collection("messages").doc(id).update({ text: newText }).then(() => {
+                    alert("留言已更新！");
+                }).catch((err) => alert("更新失敗: " + err));
             }
-
-            db.collection("messages").doc(id).update({
-                text: trimmedText,
-                author: trimmedAuthor,
-            }).then(() => {
-                alert("留言已更新！");
-                editArea.style.display = "none";
-                loadMessages();
-            }).catch((err) => {
-                alert("更新失敗: " + err);
-            });
         }
-
-        function cancelEdit(id) {
-            const editArea = document.getElementById("edit-area-" + id);
-            editArea.style.display = "none";
-        }
-
-        document.addEventListener("DOMContentLoaded", loadMessages);
     </script>
 </body>
 
