@@ -140,12 +140,11 @@
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
-  authDomain: "wedding-blessing-wall.firebaseapp.com",
-  projectId: "wedding-blessing-wall",
-  storageBucket: "wedding-blessing-wall.firebasestorage.app",
-  messagingSenderId: "872163408660",
-  appId: "1:872163408660:web:18b9452fed79291a596001",
-  measurementId: "G-6M3MZ67EMF"
+            authDomain: "wedding-blessing-wall.firebaseapp.com",
+            projectId: "wedding-blessing-wall",
+            storageBucket: "wedding-blessing-wall.appspot.com",
+            messagingSenderId: "872163408660",
+            appId: "1:872163408660:web:18b9452fed79291a596001"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -171,7 +170,6 @@
 
         document.getElementById("login-btn").addEventListener("click", () => {
             const provider = new firebase.auth.GoogleAuthProvider();
-            // 改為使用 redirect 流程
             auth.signInWithRedirect(provider);
         });
 
@@ -179,17 +177,12 @@
             auth.signOut().then(() => updateUI(null));
         });
 
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                updateUI(user);
-            } else {
-                // 用 redirect 流程後，登入後會回來此頁
-                auth.getRedirectResult().then(result => {
-                    if (result.user) {
-                        updateUI(result.user);
-                    }
-                });
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                updateUI(result.user);
             }
+        }).catch((error) => {
+            alert("登入失敗：" + error.message);
         });
 
         function loadMessages(isAdmin) {
@@ -205,8 +198,7 @@
                             <strong>${msg.author}</strong>:<br><span>${msg.text}</span>
                         </div>
                         ${isAdmin ? `<button class="edit-btn" onclick="editMessage('${doc.id}')">編輯</button>
-                        <button class="delete-btn" onclick="deleteMessage('${doc.id}')">刪除</button>` : ""}
-                    `;
+                        <button class="delete-btn" onclick="deleteMessage('${doc.id}')">刪除</button>` : ""}`;
                     container.appendChild(el);
                 });
             });
