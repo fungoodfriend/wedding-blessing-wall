@@ -155,12 +155,23 @@
         let currentUser = null;
 
         function updateUI(user) {
-            if (user && adminEmails.includes(user.email)) {
-                document.getElementById("login-btn").style.display = "none";
-                document.getElementById("logout-btn").style.display = "block";
-                currentUser = user;
-                loadMessages(true); // 允許管理員管理留言
+            if (user) {
+                console.log("User logged in: " + user.email);  // 檢查使用者的 email
+                if (adminEmails.includes(user.email)) {
+                    console.log("Admin access granted.");
+                    document.getElementById("login-btn").style.display = "none";
+                    document.getElementById("logout-btn").style.display = "block";
+                    currentUser = user;
+                    loadMessages(true); // 允許管理員管理留言
+                } else {
+                    console.log("Not admin.");
+                    document.getElementById("login-btn").style.display = "block";
+                    document.getElementById("logout-btn").style.display = "none";
+                    currentUser = null;
+                    loadMessages(false); // 一般使用者只能瀏覽
+                }
             } else {
+                console.log("No user logged in.");
                 document.getElementById("login-btn").style.display = "block";
                 document.getElementById("logout-btn").style.display = "none";
                 currentUser = null;
@@ -182,6 +193,7 @@
         });
 
         function loadMessages(isAdmin) {
+            console.log("Loading messages. Admin: " + isAdmin);
             const container = document.getElementById("messageList");
             db.collection("messages").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
                 container.innerHTML = "";
