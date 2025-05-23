@@ -1,94 +1,150 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
-  <title>管理留言</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>留言管理｜婚禮祝福牆</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #cceeff;
+      color: white;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 30px 15px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      color: #003366;
+    }
+
+    .message {
+      background-color: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .author {
+      font-weight: bold;
+      color: #66ffff;
+    }
+
+    .text {
+      font-size: 1.2rem;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(255, 80, 80, 0.8);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background-color: rgba(255, 0, 0, 0.9);
+    }
+
+    .login-container {
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .login-btn {
+      font-size: 1.2rem;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>留言管理</h1>
+    <div id="messageList"></div>
+    <div id="login" class="login-container">
+      <button class="login-btn" onclick="login()">管理者登入</button>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-</head>
-<body>
-  <h2>留言管理介面</h2>
-  <div id="user-info" style="margin-bottom: 10px;"></div>
-  <button id="loginBtn">使用 Google 登入</button>
-  <button id="logoutBtn" style="display: none;">登出</button>
-
-  <div id="messages"></div>
-
   <script>
-    // Firebase 設定
     const firebaseConfig = {
       apiKey: "AIzaSyB8unHbn_jO7tuteLOUPy9t4-4gEL-GHcM",
       authDomain: "wedding-blessing-wall.firebaseapp.com",
       projectId: "wedding-blessing-wall",
+      storageBucket: "wedding-blessing-wall.appspot.com",
+      messagingSenderId: "872163408660",
+      appId: "1:872163408660:web:18b9452fed79291a596001"
     };
+
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
+    const auth = firebase.auth();
+    const messageList = document.getElementById("messageList");
+    const loginDiv = document.getElementById("login");
 
-    // 管理者 email 清單（只有這些帳號可以刪留言）
-    const allowedAdmins = ["fungoodfriend@gmail.com"]; // << 替換成你的 Google 信箱
-
-    // DOM
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const userInfo = document.getElementById("user-info");
-    const messagesDiv = document.getElementById("messages");
-
-    loginBtn.onclick = () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider);
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        const email = user.email;
-        userInfo.innerText = `登入中：${email}`;
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
-
-        if (allowedAdmins.includes(email)) {
-          loadMessages();
-        } else {
-          messagesDiv.innerHTML = "<p style='color:red;'>您不是管理者，無權進行操作。</p>";
-        }
-      } else {
-        userInfo.innerText = "尚未登入";
-        loginBtn.style.display = "inline-block";
-        logoutBtn.style.display = "none";
-        messagesDiv.innerHTML = "";
-      }
-    });
-
-    function loadMessages() {
-      db.collection("messages").orderBy("timestamp", "desc").get().then(snapshot => {
-        let html = "";
-        snapshot.forEach(doc => {
-          const msg = doc.data();
-          html += `
-            <div style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
-              <strong>${msg.author}</strong><br>
-              ${msg.text}<br>
-              <button onclick="deleteMessage('${doc.id}')">刪除</button>
-            </div>
-          `;
-        });
-        messagesDiv.innerHTML = html;
+    function renderMessages(snapshot) {
+      messageList.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message";
+        messageDiv.innerHTML = `
+          <div class="author">${data.author}</div>
+          <div class="text">${data.text}</div>
+          <button class="delete-btn" onclick="deleteMessage('${doc.id}')">刪除</button>
+        `;
+        messageList.appendChild(messageDiv);
       });
     }
 
     function deleteMessage(id) {
-      if (confirm("確定要刪除這則留言？")) {
-        db.collection("messages").doc(id).delete().then(() => {
-          alert("刪除成功！");
-          loadMessages();
-        }).catch(err => {
+      if (confirm("確定要刪除此留言？")) {
+        db.collection("messages").doc(id).delete().catch(err => {
           alert("刪除失敗：" + err.message);
         });
       }
     }
+
+    function login() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(error => {
+        alert("登入失敗：" + error.message);
+      });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user && user.email === "fungoodfriend@gmail.com") {
+        loginDiv.style.display = "none";
+        db.collection("messages").orderBy("timestamp", "desc").onSnapshot(renderMessages);
+      } else {
+        loginDiv.style.display = "block";
+        messageList.innerHTML = "";
+      }
+    });
   </script>
 </body>
+
 </html>
